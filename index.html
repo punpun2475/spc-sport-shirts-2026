@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบทดสอบ สั่งซื้อเสื้อ ลีลาวดีกีฬาสัมพันธ์ 2026</title>
+    
+    <!-- Google Fonts: Kanit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Kanit', 'sans-serif'] },
+                    colors: {
+                        themeBlue: { DEFAULT: '#3b82f6', dark: '#1e40af', light: '#eff6ff', text: '#1e3a8a' },
+                        themeAccent: { DEFAULT: '#0ea5e9', dark: '#0369a1' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Icons & External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- เพิ่ม Font Awesome สำหรับไอคอนส่วนชำระเงิน -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px; height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+    </style>
+</head>
+<body class="bg-themeBlue-light font-sans text-gray-800 antialiased min-h-screen flex flex-col relative pb-20">
+
+    <header class="bg-white shadow-md py-3 px-4 mb-6 sticky top-0 z-30 border-b-4 border-themeBlue">
+        <div class="max-w-7xl mx-auto flex items-center justify-between text-themeBlue-text">
+            <div class="flex items-center gap-3">
+                <img src="https://raw.githubusercontent.com/punpun2475/school-images/refs/heads/main/cc14fc30-944e-4e46-b2e1-01250f3adf92.png" alt="Logo" class="h-12 w-auto object-contain">
+                <h1 class="text-lg md:text-2xl font-bold text-themeBlue-dark">ระบบสั่งซื้อเสื้อ ลีลาวดีกีฬาสัมพันธ์ 2026</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="loginAdmin()" class="text-sm font-semibold text-gray-400 hover:text-themeBlue transition hidden md:flex items-center gap-1 bg-gray-50 px-3 py-1.5 rounded-full border">
+                    <i class="ph-fill ph-lock-key"></i> ผู้ดูแลระบบ
+                </button>
+                <button onclick="openCartModal()" class="relative bg-themeBlue text-white p-2.5 rounded-full shadow-md hover:bg-themeBlue-dark transition">
+                    <i class="ph-bold ph-shopping-cart text-2xl"></i>
+                    <span id="cartBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 mb-10">
+        
+        <!-- ================= USER SHOP VIEW ================= -->
+        <div id="shopView" class="max-w-2xl mx-auto space-y-6 animate-[fadeIn_0.5s_ease-out]">
+            <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 border-t-4 border-themeBlue">
+                <h2 class="text-xl font-bold mb-6 flex items-center gap-2 text-themeBlue-dark">
+                    <i class="ph-fill ph-shopping-bag text-3xl"></i> 
+                    <span>เลือกเสื้อกีฬาสีที่ต้องการสั่งซื้อ</span>
+                </h2>
+                
+                <div class="space-y-6">
+                    <!-- แสดงตัวอย่างเสื้อ -->
+                    <div class="bg-gradient-to-b from-themeBlue-light to-white p-6 border rounded-2xl flex flex-col items-center justify-center text-center shadow-inner relative overflow-hidden">
+                        <span class="absolute top-3 left-3 bg-themeAccent text-white text-sm px-3 py-1 rounded-full font-bold shadow" id="priceTag">฿250</span>
+                        <div class="relative w-40 h-40 flex items-center justify-center transition-all duration-300 my-2">
+                            <img id="shirtPreviewImg" src="" alt="Shirt Preview" class="w-full h-full object-contain drop-shadow-lg hidden rounded-lg">
+                            <i class="ph-fill ph-t-shirt drop-shadow-xl transition-colors duration-300" id="shirtPreviewIcon" style="font-size: 130px; color: #e5e7eb;"></i>
+                        </div>
+                        <p id="shirtPreviewText" class="text-sm font-medium text-gray-500 mt-2">กรุณาเลือกสีและไซส์</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold mb-1 text-gray-700">สีเสื้อ (คณะสี) *</label>
+                            <select id="prodColor" onchange="updateProductPreview()" class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-themeBlue outline-none text-sm bg-gray-50 shadow-sm transition font-medium">
+                                <option value="">- เลือกสี -</option>
+                                <option value="ส้ม">คณะสีส้ม</option>
+                                <option value="เหลือง">คณะสีเหลือง</option>
+                                <option value="ม่วง">คณะสีม่วง</option>
+                                <option value="ชมพู">คณะสีชมพู</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-1 text-gray-700">ขนาด (Size) *</label>
+                            <select id="prodSize" onchange="updateProductPreview()" class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-themeBlue outline-none text-sm bg-gray-50 shadow-sm transition font-medium">
+                                <option value="">- เลือก -</option>
+                                <option value="รอบอก 28">รอบอก 28"</option>
+                                <option value="รอบอก 30">รอบอก 30"</option>
+                                <option value="รอบอก 34">รอบอก 34"</option>
+                                <option value="รอบอก 36">รอบอก 36"</option>
+                                <option value="รอบอก 38">รอบอก 38"</option>
+                                <option value="รอบอก 40">รอบอก 40"</option>
+                                <option value="รอบอก 42">รอบอก 42"</option>
+                                <option value="รอบอก 44">รอบอก 44"</option>
+                                <option value="รอบอก 46">รอบอก 46"</option>
+                                <option value="รอบอก 48">รอบอก 48"</option>
+                                <option value="รอบอก 50">รอบอก 50"</option>
+                                <option value="รอบอก 52">รอบอก 52"</option>
+                                <option value="รอบอก 54">รอบอก 54"</option>
+                                <option value="รอบอก 56">รอบอก 56"</option>
+                                <option value="รอบอก 58">รอบอก 58"</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-semibold mb-1 text-gray-700 flex justify-between">
+                            <span>จำนวน *</span>
+                            <span id="stockStatus" class="text-red-500 font-bold hidden">เหลือ: 0 ตัว</span>
+                        </label>
+                        <div class="flex items-center border rounded-xl h-12 bg-white overflow-hidden shadow-sm w-full md:w-1/2">
+                            <button type="button" onclick="changeQty(-1)" class="px-5 hover:bg-gray-100 h-full border-r text-gray-600 font-bold text-lg">-</button>
+                            <input type="number" id="prodQty" value="1" min="1" class="w-full text-center h-full focus:outline-none text-base font-bold pointer-events-none text-themeBlue-dark" readonly>
+                            <button type="button" onclick="changeQty(1)" class="px-5 hover:bg-gray-100 h-full border-l text-gray-600 font-bold text-lg">+</button>
+                        </div>
+                    </div>
+
+                    <button type="button" id="btnAddToCart" onclick="addToCart()" class="w-full mt-4 bg-themeBlue hover:bg-themeBlue-dark text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition flex justify-center items-center gap-2 transform active:scale-95 text-lg">
+                        <i class="ph-bold ph-shopping-cart-simple"></i> เพิ่มลงตะกร้า <span id="addBtnPrice" class="font-normal text-sm ml-1 opacity-80"></span>
+                    </button>
+                    <p class="text-center text-xs text-gray-500 mt-2"><i class="ph-fill ph-info"></i> หากต้องการสั่งหลายไซส์ ให้กดเพิ่มลงตะกร้าทีละไซส์</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= ADMIN VIEW ================= -->
+        <div id="adminView" class="hidden space-y-6 animate-[fadeIn_0.5s_ease-out]">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h2 class="text-xl font-bold text-themeBlue-dark flex items-center gap-2">
+                    <i class="ph-fill ph-shield-check text-2xl text-red-500"></i> ส่วนผู้ดูแลระบบ (Admin)
+                </h2>
+                <button onclick="logoutAdmin()" class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-1 border border-red-200">
+                    <i class="ph-bold ph-sign-out"></i> ออกจากระบบ
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white rounded-xl shadow-md p-4 border border-gray-100">
+                    <h3 class="text-center font-semibold text-gray-700 mb-2">สถิติขนาดเสื้อ (Size)</h3>
+                    <div class="relative h-48 w-full"><canvas id="barChart"></canvas></div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-4 border border-gray-100">
+                    <h3 class="text-center font-semibold text-gray-700 mb-2">สัดส่วนการสั่งซื้อแบ่งตามคณะสี</h3>
+                    <div class="relative h-48 w-full"><canvas id="pieChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Table Section -->
+            <div class="bg-white rounded-xl shadow-md p-6 flex-grow flex flex-col relative border border-gray-100">
+                <div id="tableLoader" class="absolute inset-0 bg-white/80 z-10 flex flex-col items-center justify-center rounded-xl hidden">
+                    <div class="loader mb-2"></div>
+                    <p class="text-sm text-themeBlue-text font-medium mt-2">กำลังโหลดข้อมูล...</p>
+                </div>
+
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <i class="ph-fill ph-list-dashes text-themeBlue-text text-2xl"></i>
+                        <h2 class="text-lg font-semibold text-gray-800">ประวัติการสั่งซื้อทั้งหมด</h2>
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                        <div class="relative flex-grow md:flex-grow-0">
+                            <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-gray-400"></i>
+                            <input type="text" id="searchInput" onkeyup="handleSearch()" placeholder="ค้นหา รหัส, ชื่อ..." class="w-full md:w-48 pl-9 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-themeBlue outline-none text-sm bg-gray-50">
+                        </div>
+                        <button onclick="fetchData()" class="bg-themeBlue-light hover:bg-blue-200 text-themeBlue-dark font-semibold py-2 px-3 rounded-lg transition flex items-center gap-1 text-sm border border-blue-200">
+                            <i class="ph-bold ph-arrows-clockwise"></i> อัปเดตข้อมูล
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto flex-grow rounded-lg border border-gray-200">
+                    <table class="w-full text-left border-collapse text-sm whitespace-nowrap">
+                        <thead>
+                            <tr class="bg-gray-50 text-gray-700">
+                                <th class="px-3 py-3 border-b">รหัสสั่งซื้อ</th>
+                                <th class="px-3 py-3 border-b">นักเรียน (ชั้น/ห้อง)</th>
+                                <th class="px-3 py-3 border-b">ผู้สั่งซื้อ (โทร)</th>
+                                <th class="px-3 py-3 border-b">รายการเสื้อ</th>
+                                <th class="px-3 py-3 border-b">ยอดรวม</th>
+                                <th class="px-3 py-3 border-b">หลักฐาน</th>
+                                <th class="px-3 py-3 border-b text-center">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="divide-y divide-gray-200 bg-white text-gray-600">
+                            <tr><td colspan="7" class="text-center py-10 text-gray-400">ยังไม่มีข้อมูล</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full text-center pb-8 pt-4 text-themeBlue-text text-sm font-medium mt-auto">
+        &copy; 2026 POMMY@St.Paul
+    </footer>
+
+    <!-- ปุ่ม Admin สำหรับมือถือ -->
+    <div class="fixed bottom-4 right-4 md:hidden z-40">
+         <button onclick="loginAdmin()" class="bg-white/90 backdrop-blur border border-gray-200 text-gray-500 p-3 rounded-full shadow-lg hover:text-themeBlue">
+             <i class="ph-bold ph-lock-key text-xl"></i>
+         </button>
+    </div>
+
+    <!-- Modals -->
+    <div id="cartModal" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center backdrop-blur-sm px-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col max-h-[90vh] animate-[slideIn_0.3s_ease-out]">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 class="text-lg font-bold text-themeBlue-dark flex items-center gap-2">
+                    <i class="ph-fill ph-shopping-cart text-xl"></i> ตะกร้าสินค้าของคุณ
+                </h2>
+                <button onclick="closeCartModal()" class="text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full p-1 transition"><i class="ph-bold ph-x text-xl"></i></button>
+            </div>
+            
+            <div class="p-4 flex-grow overflow-y-auto no-scrollbar space-y-3 bg-gray-50" id="cartItemsContainer">
+            </div>
+
+            <div class="p-4 border-t bg-white rounded-b-2xl shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                <div class="flex justify-between items-center mb-4 font-semibold text-lg text-gray-800">
+                    <span>รวมทั้งสิ้น</span>
+                    <span id="cartTotalPrice" class="text-themeBlue-dark font-bold text-xl">฿0</span>
+                </div>
+                <button onclick="openCheckoutModal()" id="btnGoCheckout" class="w-full bg-themeBlue hover:bg-themeBlue-dark text-white font-bold py-3.5 px-4 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed text-lg">
+                    ไปที่หน้าชำระเงิน
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="checkoutModal" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center backdrop-blur-sm px-4 py-6">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col max-h-[95vh] animate-[slideIn_0.3s_ease-out]">
+            <div class="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl z-10">
+                <h2 class="text-lg font-bold text-themeBlue-dark flex items-center gap-2">
+                    <i class="ph-fill ph-credit-card text-xl"></i> ชำระเงินและการจัดส่ง
+                </h2>
+                <button onclick="closeCheckoutModal()" class="text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full p-1 transition"><i class="ph-bold ph-x text-xl"></i></button>
+            </div>
+            
+            <div class="p-5 flex-grow overflow-y-auto no-scrollbar relative">
+                <div id="submitLoader" class="absolute inset-0 bg-white/90 z-20 hidden flex-col items-center justify-center rounded-b-2xl backdrop-blur-sm">
+                    <div class="loader mb-3"></div>
+                    <p class="text-themeBlue-dark font-bold text-lg">กำลังดำเนินการสั่งซื้อ...</p>
+                    <p class="text-xs text-gray-500 mt-1">กรุณารอสักครู่ ห้ามปิดหน้าต่างนี้</p>
+                </div>
+
+                <form id="checkoutForm" class="space-y-4">
+                    <p class="text-sm text-gray-500 text-center mb-2">กรุณากรอกข้อมูลเพื่อใช้ในการจัดส่งและยืนยันตัวตน</p>
+                    
+                    <div class="bg-themeBlue-light/50 p-4 rounded-xl border border-blue-100 space-y-3">
+                        <h3 class="text-sm font-bold text-themeBlue-dark border-b border-blue-200 pb-1 flex items-center gap-1"><i class="ph-fill ph-student"></i> ข้อมูลนักเรียน</h3>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 text-gray-700">ชื่อ-สกุล นักเรียน *</label>
+                            <input type="text" id="studentName" required placeholder="เช่น ด.ญ. สมศรี รักเรียน" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-themeBlue outline-none text-sm bg-white">
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="block text-xs font-semibold mb-1 text-gray-700">ชั้น *</label>
+                                <input type="text" id="grade" required placeholder="เช่น ป.1" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-themeBlue outline-none text-sm bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold mb-1 text-gray-700">ห้อง *</label>
+                                <input type="text" id="room" required placeholder="เช่น 2" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-themeBlue outline-none text-sm bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold mb-1 text-gray-700">เพศ *</label>
+                                <select id="gender" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-themeBlue outline-none text-sm bg-white">
+                                    <option value="หญิง">หญิง</option>
+                                    <option value="ชาย">ชาย</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 p-1">
+                        <div>
+                            <label class="block text-sm font-semibold mb-1 text-gray-700">ชื่อผู้ติดต่อ / ผู้ปกครอง *</label>
+                            <input type="text" id="buyerName" required placeholder="ชื่อ-นามสกุล" class="w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-themeBlue outline-none text-sm bg-gray-50">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-1 text-gray-700">เบอร์โทรศัพท์ติดต่อ *</label>
+                            <input type="tel" id="phone" required placeholder="เช่น 0812345678" class="w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-themeBlue outline-none text-sm bg-gray-50">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold mb-1 text-gray-700">ช่องทางการรับสินค้า *</label>
+                            <select id="delivery" required onchange="toggleAddressCheckout()" class="w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-themeBlue outline-none text-sm bg-gray-50">
+                                <option value="รับที่โรงเรียน">รับที่โรงเรียน (ผ่านนักเรียน)</option>
+                            </select>
+                        </div>
+
+                        <div id="addressDivCheckout" class="hidden">
+                            <label class="block text-sm font-semibold mb-1 text-themeBlue-dark">ที่อยู่ในการจัดส่งอย่างละเอียด *</label>
+                            <textarea id="address" rows="2" placeholder="บ้านเลขที่ ซอย ถนน ตำบล อำเภอ จังหวัด รหัสไปรษณีย์" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-themeBlue outline-none text-sm bg-white shadow-inner"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- แก้ไขโครงสร้าง HTML ที่ผิดพลาด -->
+                    <div class="mt-6 pt-4 border-t text-center">
+                        <p class="text-sm font-medium text-gray-500">ยอดที่ต้องชำระ</p>
+                        <h2 class="text-3xl font-bold text-themeBlue-dark mb-4" id="checkoutTotal">฿0</h2>
+                    </div>
+
+                    <!-- Payment Section -->
+                    <div class="bg-slate-900 p-6 md:p-8 rounded-xl text-white relative overflow-hidden shadow-lg mt-2">
+                        <h3 class="font-bold text-xl flex items-center gap-2 mb-6"><i class="fa-regular fa-credit-card text-yellow-400"></i> ข้อมูลการชำระเงิน</h3>
+                        
+                        <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 backdrop-blur-sm mb-6 shadow-md">
+                            <div class="text-xs text-blue-400 font-bold mb-3 uppercase tracking-wider">โอนเงินเข้าบัญชี</div>
+                            <div class="flex flex-col gap-3">
+                                <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-gray-900 font-bold text-xs">BAY</div> <span class="text-lg">ธนาคารกรุงศรีอยุธยา</span></div>
+                                <div class="flex items-center gap-3"><i class="fa-solid fa-hashtag text-slate-400"></i> <span class="font-mono text-2xl tracking-wider text-yellow-300 font-bold">278-1-39631-0</span></div>
+                                <div class="flex items-center gap-3"><i class="fa-solid fa-user text-slate-400"></i> <span class="text-base text-slate-200 font-medium">โรงเรียนเซนต์ปอลคอนแวนต์</span></div>
+                            </div>
+                        </div>
+
+                        <div class="text-sm text-red-200 bg-red-900/30 p-3 rounded-lg border border-red-500/30">
+                            <strong class="text-red-400 block text-base mb-1"><i class="fa-solid fa-circle-exclamation"></i> คำเตือนสำคัญมาก:</strong>
+                            กรุณาพิมพ์ <strong class="text-white underline">"ชื่อ-นามสกุลน้อง"</strong> ลงในช่อง <strong class="text-white">บันทึกช่วยจำ (Memo)</strong> ของแอปพลิเคชันธนาคารทุกครั้งก่อนกดยืนยันการโอนเงิน เพื่อให้ระบบตรวจสอบยอดเงินได้อย่างถูกต้องรวดเร็ว
+                        </div>
+                        
+                        <div class="mt-5 text-left bg-blue-50/10 p-3 rounded-lg border border-blue-400/30">
+                            <label class="block text-sm font-bold mb-1 text-blue-200">แนบสลิปโอนเงิน *</label>
+                            <input type="file" id="slipFile" accept="image/*" required class="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 transition cursor-pointer">
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="p-4 border-t bg-white rounded-b-2xl shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] sticky bottom-0 z-20">
+                <button type="button" onclick="submitOrder()" id="btnSubmitOrder" class="w-full bg-themeBlue hover:bg-themeBlue-dark text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-lg">
+                    <i class="ph-bold ph-check-circle text-xl"></i> ยืนยันการสั่งซื้อ
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JS Scripts -->
+    <script>
+        // ==========================================
+        // การตั้งค่าระบบ
+        // ==========================================
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxk0RZAZ36p-K_qDiRRK0UUMP7JhTvvV4NNesM0tgAexYso47xW6Uwges8vwBk3BYnsfg/exec'; 
+        
+        let PRODUCT_STOCK = {}; 
+        const DEFAULT_STOCK = 0; 
+
+        let appData = []; 
+        let cart = []; 
+        let barChartInstance = null;
+        let pieChartInstance = null;
+
+        const Toast = Swal.mixin({
+            toast: true, position: 'top-end', showConfirmButton: false, timer: 2000,
+            timerProgressBar: true, didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+
+        // ----------------------------------------------------
+        // โหลดข้อมูลสต๊อก Real-time จาก Google Sheet
+        // ----------------------------------------------------
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchRealTimeStock();
+        });
+
+        async function fetchRealTimeStock() {
+            const addBtn = document.getElementById('btnAddToCart');
+            const originalBtnHtml = addBtn.innerHTML;
+            addBtn.innerHTML = '<i class="ph-bold ph-spinner ph-spin text-xl"></i> กำลังอัปเดตสต๊อก...';
+            addBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${GAS_URL}?action=readStock`);
+                const result = await response.json();
+                if(result.status === 'success') {
+                    PRODUCT_STOCK = result.data; 
+                }
+            } catch(e) {
+                console.error("Stock Fetch Error: ", e);
+            } finally {
+                updateProductPreview(); 
+            }
+        }
+
+        function getAvailableStock(color, size) {
+            const key = `${color}-${size}`;
+            let maxStock = PRODUCT_STOCK[key] !== undefined ? PRODUCT_STOCK[key] : DEFAULT_STOCK;
+            
+            const cartItem = cart.find(item => item.id === key);
+            const inCart = cartItem ? cartItem.qty : 0;
+            
+            return Math.max(0, maxStock - inCart);
+        }
+
+        // ----------------------------------------------------
+        // ฟังก์ชันระบบ Admin
+        // ----------------------------------------------------
+        function loginAdmin() {
+            Swal.fire({
+                title: 'เข้าสู่ระบบผู้ดูแล',
+                input: 'password',
+                inputPlaceholder: 'ใส่รหัสผ่าน (ทดสอบพิมพ์: 1234)',
+                showCancelButton: true,
+                confirmButtonText: 'เข้าสู่ระบบ',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#1d4ed8'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (result.value === '1234') { 
+                        document.getElementById('shopView').classList.add('hidden');
+                        document.getElementById('adminView').classList.remove('hidden');
+                        fetchData(); 
+                        Toast.fire({ icon: 'success', title: 'เข้าสู่ระบบ Admin สำเร็จ' });
+                    } else {
+                        Swal.fire('ข้อผิดพลาด', 'รหัสผ่านไม่ถูกต้อง', 'error');
+                    }
+                }
+            });
+        }
+
+        function logoutAdmin() {
+            document.getElementById('adminView').classList.add('hidden');
+            document.getElementById('shopView').classList.remove('hidden');
+            Toast.fire({ icon: 'info', title: 'ออกจากระบบผู้ดูแลแล้ว' });
+        }
+
+        // ----------------------------------------------------
+        // ฟังก์ชันคำนวณราคาและ UI สินค้า
+        // ----------------------------------------------------
+        function calculateItemPrice(size) {
+            return 250; 
+        }
+
+        function updateProductPreview() {
+            const color = document.getElementById('prodColor').value;
+            const size = document.getElementById('prodSize').value;
+            
+            const previewIcon = document.getElementById('shirtPreviewIcon');
+            const previewImg = document.getElementById('shirtPreviewImg');
+            const previewText = document.getElementById('shirtPreviewText');
+            const priceTag = document.getElementById('priceTag');
+            const addBtnPrice = document.getElementById('addBtnPrice');
+            const addBtn = document.getElementById('btnAddToCart');
+            const stockStatus = document.getElementById('stockStatus');
+            const qtyInput = document.getElementById('prodQty');
+
+            const imageMap = {
+                'ส้ม': 'https://raw.githubusercontent.com/punpun2475/school-images/refs/heads/main/2.png',
+                'เหลือง':'https://raw.githubusercontent.com/punpun2475/school-images/refs/heads/main/4.png',
+                'ม่วง': 'https://raw.githubusercontent.com/punpun2475/school-images/refs/heads/main/3.png',
+                'ชมพู': 'https://raw.githubusercontent.com/punpun2475/school-images/refs/heads/main/1.png'
+            };
+
+            if (color) {
+                previewImg.src = imageMap[color];
+                previewImg.classList.remove('hidden');
+                previewIcon.classList.add('hidden');
+            } else {
+                previewImg.classList.add('hidden');
+                previewIcon.classList.remove('hidden');
+            }
+            
+            if (color && size) {
+                previewText.innerText = `เสื้อกีฬาสี${color} - ไซส์ ${size}`;
+                previewText.className = "text-sm font-bold text-themeBlue-dark mt-2";
+                
+                let available = getAvailableStock(color, size);
+                stockStatus.innerText = `เหลือ: ${available} ตัว`;
+                stockStatus.classList.remove('hidden');
+
+                if (available <= 0) {
+                    stockStatus.classList.replace('text-green-600', 'text-red-500');
+                    addBtn.disabled = true;
+                    addBtn.innerHTML = '<i class="ph-bold ph-x-circle"></i> สินค้าหมด / เกินสต๊อก';
+                    addBtn.classList.replace('bg-themeBlue', 'bg-gray-400');
+                    qtyInput.value = 0;
+                    addBtnPrice.innerText = '';
+                } else {
+                    stockStatus.classList.replace('text-red-500', 'text-green-600');
+                    addBtn.disabled = false;
+                    addBtn.innerHTML = `<i class="ph-bold ph-shopping-cart-simple"></i> เพิ่มลงตะกร้า <span id="addBtnPrice" class="font-normal text-sm ml-1 opacity-80"></span>`;
+                    addBtn.classList.replace('bg-gray-400', 'bg-themeBlue');
+                    if (parseInt(qtyInput.value) > available || parseInt(qtyInput.value) === 0) {
+                        qtyInput.value = 1;
+                    }
+                }
+            } else {
+                previewText.innerText = 'กรุณาเลือกสีและไซส์';
+                previewText.className = "text-sm font-medium text-gray-400 mt-2";
+                stockStatus.classList.add('hidden');
+                addBtn.disabled = false;
+                addBtn.innerHTML = `<i class="ph-bold ph-shopping-cart-simple"></i> เพิ่มลงตะกร้า <span id="addBtnPrice" class="font-normal text-sm ml-1 opacity-80"></span>`;
+                addBtn.classList.replace('bg-gray-400', 'bg-themeBlue');
+            }
+
+            let currentPrice = calculateItemPrice(size || '');
+            priceTag.innerText = `฿${currentPrice}`;
+            
+            if (!addBtn.disabled && color && size) {
+                const qty = parseInt(qtyInput.value);
+                addBtnPrice.innerText = `(฿${currentPrice * qty})`;
+            }
+        }
+
+        function changeQty(amount) {
+            const color = document.getElementById('prodColor').value;
+            const size = document.getElementById('prodSize').value;
+            
+            if(!color || !size) return;
+
+            const available = getAvailableStock(color, size);
+            const input = document.getElementById('prodQty');
+            let val = parseInt(input.value) + amount;
+            
+            if (val > available) {
+                Swal.fire('ขออภัย', `สินค้านี้เหลือสต๊อกที่สั่งได้เพียง ${available} ตัว`, 'warning');
+                val = available;
+            }
+            if (val < 1) val = available > 0 ? 1 : 0;
+            
+            input.value = val;
+            updateProductPreview();
+        }
+
+        // ----------------------------------------------------
+        // ฟังก์ชันจัดการตะกร้าสินค้า (Cart)
+        // ----------------------------------------------------
+        function addToCart() {
+            const color = document.getElementById('prodColor').value;
+            const size = document.getElementById('prodSize').value;
+            const qty = parseInt(document.getElementById('prodQty').value);
+
+            if (!color || !size || qty <= 0) {
+                Swal.fire('ข้อผิดพลาด', 'กรุณาเลือก สี ไซส์ และจำนวน ให้ถูกต้อง', 'warning');
+                return;
+            }
+
+            const price = calculateItemPrice(size);
+            const itemId = `${color}-${size}`;
+
+            const existingItem = cart.find(item => item.id === itemId);
+            if (existingItem) {
+                existingItem.qty += qty;
+                existingItem.total = existingItem.qty * existingItem.price;
+            } else {
+                cart.push({ id: itemId, color: color, size: size, qty: qty, price: price, total: price * qty });
+            }
+
+            updateCartUI();
+            document.getElementById('prodQty').value = 1;
+            updateProductPreview();
+            
+            Toast.fire({ icon: 'success', title: 'เพิ่มลงตะกร้าแล้ว!' });
+        }
+
+        function updateCartUI() {
+            const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+            document.getElementById('cartBadge').innerText = totalItems;
+            
+            const container = document.getElementById('cartItemsContainer');
+            const btnGoCheckout = document.getElementById('btnGoCheckout');
+            
+            if (cart.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray-400 py-12 flex flex-col items-center gap-3"><i class="ph-fill ph-shopping-cart text-5xl opacity-50"></i> <p class="font-medium">ตะกร้าว่างเปล่า</p></div>';
+                document.getElementById('cartTotalPrice').innerText = '฿0';
+                btnGoCheckout.disabled = true;
+                return;
+            }
+
+            let html = '';
+            let grandTotal = 0;
+            const imageMap = {
+                'ส้ม': 'https://raw.githubusercontent.com/punpun2475/school-images/refs/heads/main/2.png',
+                'เหลือง':'https://raw.githubusercontent.com/punpun2475/school-images/refs/heads/main/4.png',
+                'ม่วง': 'https://raw.githubusercontent.com/punpun2475/school-images/refs/heads/main/3.png',
+                'ชมพู': 'https://raw.githubusercontent.com/punpun2475/school-images/refs/heads/main/1.png'
+            };
+
+            cart.forEach((item, index) => {
+                grandTotal += item.total;
+                const imgSrc = imageMap[item.color];
+                
+                html += `
+                <div class="bg-white p-3 rounded-xl shadow-sm border border-blue-50 flex items-center gap-3">
+                    <div class="bg-gray-50 p-1 rounded-lg border flex items-center justify-center w-14 h-14 overflow-hidden">
+                        <img src="${imgSrc}" alt="เสื้อสี${item.color}" class="w-full h-full object-cover rounded drop-shadow-sm">
+                    </div>
+                    <div class="flex-grow">
+                        <div class="font-bold text-gray-800 text-sm leading-tight">เสื้อสี${item.color}</div>
+                        <div class="text-xs text-gray-500 mt-0.5">Size: <span class="font-bold text-themeBlue-text">${item.size}</span> | ฿${item.price} / ตัว</div>
+                    </div>
+                    <div class="flex flex-col items-end gap-2">
+                        <div class="font-bold text-themeBlue-dark text-sm">฿${item.total}</div>
+                        <div class="flex items-center border rounded-md h-7 overflow-hidden bg-gray-50">
+                            <button onclick="changeCartQty(${index}, -1)" class="px-2 hover:bg-gray-200 text-gray-600 font-bold border-r">-</button>
+                            <span class="w-6 text-center text-xs font-medium bg-white">${item.qty}</span>
+                            <button onclick="changeCartQty(${index}, 1)" class="px-2 hover:bg-gray-200 text-gray-600 font-bold border-l">+</button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+            document.getElementById('cartTotalPrice').innerText = `฿${grandTotal}`;
+            btnGoCheckout.disabled = false;
+        }
+
+        function changeCartQty(index, amount) {
+            const item = cart[index];
+            const newQty = item.qty + amount;
+            
+            if (amount > 0) { 
+                const key = `${item.color}-${item.size}`;
+                let maxStock = PRODUCT_STOCK[key] !== undefined ? PRODUCT_STOCK[key] : DEFAULT_STOCK;
+                if (newQty > maxStock) {
+                    Swal.fire('ขออภัย', `สินค้านี้มีสต๊อกสูงสุดเพียง ${maxStock} ตัว`, 'warning');
+                    return;
+                }
+            }
+
+            item.qty = newQty;
+            if (item.qty <= 0) {
+                cart.splice(index, 1);
+            } else {
+                item.total = item.qty * item.price;
+            }
+            updateCartUI();
+            updateProductPreview(); 
+        }
+
+        function openCartModal() { document.getElementById('cartModal').classList.remove('hidden'); updateCartUI(); }
+        function closeCartModal() { document.getElementById('cartModal').classList.add('hidden'); }
+        
+        function openCheckoutModal() {
+            if(cart.length === 0) return;
+            const grandTotal = cart.reduce((sum, item) => sum + item.total, 0);
+            document.getElementById('checkoutTotal').innerText = `฿${grandTotal}`;
+            
+            closeCartModal();
+            document.getElementById('checkoutModal').classList.remove('hidden');
+        }
+        function closeCheckoutModal() { document.getElementById('checkoutModal').classList.add('hidden'); }
+
+        function toggleAddressCheckout() {
+            const method = document.getElementById('delivery').value;
+            const addressDiv = document.getElementById('addressDivCheckout');
+            const addressInput = document.getElementById('address');
+            
+            if (method === 'จัดส่งไปรษณีย์') {
+                addressDiv.classList.remove('hidden');
+                addressInput.setAttribute('required', 'true');
+            } else {
+                addressDiv.classList.add('hidden');
+                addressInput.removeAttribute('required');
+                addressInput.value = '';
+            }
+        }
+
+        // ----------------------------------------------------
+        // ฟังก์ชันติดต่อ Backend
+        // ----------------------------------------------------
+        function toBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        async function submitOrder() {
+            const form = document.getElementById('checkoutForm');
+            if(!form.checkValidity()) { form.reportValidity(); return; }
+
+            const fileInput = document.getElementById('slipFile');
+            if(fileInput.files.length === 0) {
+                Swal.fire('แจ้งเตือน', 'กรุณาแนบสลิปการโอนเงิน', 'warning');
+                return;
+            }
+
+            document.getElementById('submitLoader').classList.remove('hidden');
+            document.getElementById('btnSubmitOrder').disabled = true;
+
+            let fileBase64 = ''; let fileName = ''; let fileMimeType = '';
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                fileBase64 = await toBase64(file);
+                fileName = file.name; fileMimeType = file.type;
+            }
+
+            const grandTotal = cart.reduce((sum, item) => sum + item.total, 0);
+
+            const payload = {
+                action: 'create',
+                buyerName: document.getElementById('buyerName').value,
+                studentName: document.getElementById('studentName').value,
+                grade: document.getElementById('grade').value,
+                room: document.getElementById('room').value,
+                phone: document.getElementById('phone').value,
+                gender: document.getElementById('gender').value,
+                delivery: document.getElementById('delivery').value,
+                address: document.getElementById('address').value,
+                cartItems: cart,
+                totalAmount: grandTotal,
+                fileBase64: fileBase64,
+                fileName: fileName,
+                fileMimeType: fileMimeType
+            };
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                if (result.status === 'success') {
+                    Swal.fire({
+                        title: 'สำเร็จ!',
+                        text: 'ทางเราได้รับคำสั่งซื้อของคุณเรียบร้อยแล้ว',
+                        icon: 'success',
+                        confirmButtonColor: '#3b82f6'
+                    });
+                    
+                    cart = [];
+                    updateCartUI();
+                    fetchRealTimeStock(); // ดึงสต๊อกใหม่หลังสั่งซื้อสำเร็จ
+                    form.reset();
+                    closeCheckoutModal();
+                } else {
+                    Swal.fire('ข้อผิดพลาด', result.message, 'error');
+                }
+            } catch (error) {
+                Swal.fire('ข้อผิดพลาดระบบ', 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้', 'error');
+            } finally {
+                document.getElementById('submitLoader').classList.add('hidden');
+                document.getElementById('btnSubmitOrder').disabled = false;
+            }
+        }
+
+        // ----------------------------------------------------
+        // ฟังก์ชัน Admin Dashboard (Table & Charts)
+        // ----------------------------------------------------
+        async function fetchData() {
+            const loader = document.getElementById('tableLoader');
+            loader.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(`${GAS_URL}?action=read`);
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    appData = result.data;
+                    renderTable(appData); renderCharts(appData);
+                    Toast.fire({ icon: 'success', title: 'อัปเดตข้อมูลล่าสุดแล้ว' });
+                }
+            } catch (error) {
+                Toast.fire({ icon: 'error', title: 'เกิดข้อผิดพลาดในการโหลดข้อมูล' });
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        function handleSearch() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = appData.filter(item => 
+                (item.OrderID && item.OrderID.toLowerCase().includes(keyword)) ||
+                (item.StudentName && item.StudentName.toLowerCase().includes(keyword)) ||
+                (item.BuyerName && item.BuyerName.toLowerCase().includes(keyword))
+            );
+            renderTable(filtered);
+        }
+
+        function renderTable(dataArray) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            if (dataArray.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-10 text-gray-500">ไม่พบข้อมูลคำสั่งซื้อ</td></tr>`;
+                return;
+            }
+
+            const colorMap = { 'ส้ม': 'text-orange-500', 'เหลือง': 'text-yellow-500', 'ม่วง': 'text-purple-500', 'ชมพู': 'text-pink-500' };
+
+            dataArray.forEach((item) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-blue-50/50 transition border-b";
+                
+                let slipCell = `<span class="text-xs text-gray-400">ไม่มีไฟล์</span>`;
+                if (item.FileUrl && item.FileUrl.trim() !== '') {
+                    slipCell = `<a href="${item.FileUrl}" target="_blank" class="text-themeBlue hover:underline text-xs flex items-center gap-1 bg-blue-100 px-2 py-1 rounded-md inline-block font-medium"><i class="ph-bold ph-image"></i> ดูสลิป</a>`;
+                }
+
+                let itemsHtml = '';
+                try {
+                    const orderItems = JSON.parse(item.OrderJSON);
+                    itemsHtml = orderItems.map(oi => 
+                        `<div class="text-xs mb-1">
+                            • <span class="${colorMap[oi.color] || 'text-gray-600'} font-bold">สี${oi.color}</span> <span class="font-semibold text-gray-700">Size ${oi.size}</span> x${oi.qty}
+                        </div>`
+                    ).join('');
+                } catch(e) { itemsHtml = '<span class="text-xs text-red-400">ข้อมูลผิดพลาด</span>'; }
+
+                tr.innerHTML = `
+                    <td class="px-3 py-3 text-xs font-mono text-gray-500">${item.OrderID}</td>
+                    <td class="px-3 py-3">
+                        <div class="font-bold text-gray-800">${item.StudentName}</div>
+                        <div class="text-xs text-gray-500">ชั้น ${item.Grade} / ${item.Room}</div>
+                    </td>
+                    <td class="px-3 py-3">
+                        <div class="text-gray-700 font-medium">${item.BuyerName}</div>
+                        <div class="text-xs text-gray-500 flex items-center gap-1"><i class="ph-fill ph-phone"></i> ${item.Phone}</div>
+                    </td>
+                    <td class="px-3 py-3 align-top">${itemsHtml}</td>
+                    <td class="px-3 py-3 font-bold text-themeBlue-dark">฿${item.TotalAmount}</td>
+                    <td class="px-3 py-3">${slipCell}</td>
+                    <td class="px-3 py-3 text-center">
+                        <button onclick="handleDelete('${item.OrderID}')" class="text-red-500 hover:bg-red-100 p-2 rounded-lg transition" title="ลบข้อมูล">
+                            <i class="ph-bold ph-trash text-lg"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function handleDelete(orderId) {
+            Swal.fire({
+                title: 'ยืนยันการลบออเดอร์?', text: "ข้อมูลนี้จะถูกลบและไม่สามารถกู้คืนได้!",
+                icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33',
+                cancelButtonText: 'ยกเลิก', confirmButtonText: 'ใช่, ลบเลย!'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('tableLoader').classList.remove('hidden');
+                    try {
+                        const response = await fetch(`${GAS_URL}?action=delete&id=${orderId}`);
+                        const resJSON = await response.json();
+                        if (resJSON.status === 'success') { Toast.fire({ icon: 'success', title: resJSON.message }); fetchData(); }
+                    } catch (err) { Toast.fire({ icon: 'error', title: 'เกิดข้อผิดพลาดในการลบ' });
+                    } finally { document.getElementById('tableLoader').classList.add('hidden'); }
+                }
+            })
+        }
+
+        function renderCharts(dataArray) {
+            const sizeCount = {}; 
+            const colorCount = { 'ส้ม': 0, 'เหลือง': 0, 'ม่วง': 0, 'ชมพู': 0 };
+
+            dataArray.forEach(order => {
+                try {
+                    const items = JSON.parse(order.OrderJSON);
+                    items.forEach(item => {
+                        if (sizeCount[item.size] === undefined) sizeCount[item.size] = 0;
+                        sizeCount[item.size] += parseInt(item.qty);
+                        if (colorCount[item.color] !== undefined) colorCount[item.color] += parseInt(item.qty);
+                    });
+                } catch(e) {}
+            });
+
+            Chart.defaults.font.family = "'Kanit', sans-serif";
+
+            const sortedSizes = Object.keys(sizeCount).sort();
+            const sortedSizeData = sortedSizes.map(size => sizeCount[size]);
+
+            const ctxBar = document.getElementById('barChart').getContext('2d');
+            if (barChartInstance) barChartInstance.destroy();
+            barChartInstance = new Chart(ctxBar, {
+                type: 'bar',
+                data: { labels: sortedSizes, datasets: [{ label: 'จำนวนเสื้อ (ตัว)', data: sortedSizeData, backgroundColor: '#60a5fa', borderRadius: 4 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+            });
+
+            const ctxPie = document.getElementById('pieChart').getContext('2d');
+            if (pieChartInstance) pieChartInstance.destroy();
+            pieChartInstance = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: { labels: Object.keys(colorCount), datasets: [{ data: Object.values(colorCount), backgroundColor: ['#f97316', '#eab308', '#a855f7', '#ec4899'], borderWidth: 1, borderColor: '#ffffff' }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+    </script>
+</body>
+</html>
